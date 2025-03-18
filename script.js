@@ -18,6 +18,8 @@ const s3Client = new S3Client({
     },
 })
 
+const Project_ID = process.env.PROJECT_ID
+
 async function init() {
     console.log("Executing Script....")
     console.log("Building....")
