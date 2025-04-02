@@ -22,7 +22,7 @@ const s3Client = new S3Client({
 function generateProjectSlug() {
     const timestamp = Date.now().toString(36);
     const randomString = Math.random().toString(36).substring(2, 8);
-    return `P${timestamp}${randomString}`;
+    return `${randomString}-${timestamp}`;
 }
 
 const projectSlug = generateProjectSlug()
