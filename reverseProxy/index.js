@@ -4,11 +4,12 @@ const httpProxy = require('http-proxy');
 
 dotenv.config();
 
+const corePath = process.env.CORE_PATH;
+const PORT = process.env.PORT || 8000;
+
 const app = express();
-const PORT = 8000;
 const proxy = httpProxy.createProxy();
 
-const corePath = process.env.CORE_PATH;
 
 if (!corePath) {
     console.error(`[ERROR] Missing ENV Variables: CORE_PATH`);
@@ -30,10 +31,10 @@ app.use((req, res) => {
     const subDomain = hostName.split('.')[0];
     const proxyTo = `${corePath}/${subDomain}`;
 
-    console.log(`[INFO] Incoming request: Method=${req.method}, URL=${req.url}, HostName=${hostName}, SubDomain=${subDomain}, ProxyTo=${proxyTo}`);
+    console.log(`[INFO] Proxy To: ${proxyTo}`);
 
     proxy.web(req, res, { target: proxyTo, changeOrigin: true }, (err) => {
-        console.error(`[ERROR] Proxy Error: ${err.message}, Method=${req.method}, URL=${req.url}, HostName=${hostName}, SubDomain=${subDomain}, ProxyTo=${proxyTo}`);
+        console.error(`[ERROR] Proxy Error: ${err.message}`);
         res.status(500).json({ message: 'Internal Server Error' });
     });
 });
