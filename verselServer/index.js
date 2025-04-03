@@ -3,7 +3,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const { generateSlug } = require('random-word-slugs');
-const {ECSClient,RunTaskCommand} = require('@aws-sdk/client-ecs')
+const { ECSClient, RunTaskCommand } = require('@aws-sdk/client-ecs');
 
 const ecsClient = new ECSClient({
     region: process.env.AWS_REGION,
@@ -11,21 +11,29 @@ const ecsClient = new ECSClient({
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
     }
-})
+});
 
 const app = express();
-app.use(express.json())
+app.use(express.json());
 
 const PORT = 9000;
 
 app.listen(PORT, () => {
-    console.log(`Versel Server on: ${PORT}`);
+    console.log(`[INFO] Versel Server started on port: ${PORT}`);
 });
 
 app.post('/project', async (req, res) => {
+    console.log('[INFO] Received request to create project.');
+    const { gitUrl } = req.body;
 
-    const { gitUrl } = req.body
+    if (!gitUrl) {
+        console.error('[ERROR] Missing gitUrl in request body.');
+        return res.status(400).json({ error: 'gitUrl is required' });
+    }
+
+    console.log(`[INFO] gitUrl: ${gitUrl}`);
     const projectSlug = generateSlug();
+    console.log(`[INFO] Generated project slug: ${projectSlug}`);
 
     const command = new RunTaskCommand({
         cluster: process.env.AWS_ECS_CLUSTER,
@@ -57,13 +65,20 @@ app.post('/project', async (req, res) => {
                 }
             ]
         }
-    })
-    await ecsClient.send(command);
-    return res.json({
-        status: 'Queued',
-        data:{
-            projectUrl: `http://${projectSlug}.localhost:8000`
-        }
     });
-    
+
+    try {
+        console.log('[INFO] Sending RunTaskCommand to ECS...');
+        await ecsClient.send(command);
+        console.log('[INFO] Task successfully queued in ECS.');
+        return res.json({
+            status: 'Queued',
+            data: {
+                projectUrl: `http://${projectSlug}.localhost:8000`
+            }
+        });
+    } catch (error) {
+        console.error(`[ERROR] Failed to queue task in ECS: ${error.message}`);
+        return res.status(500).json({ error: 'Failed to queue task' });
+    }
 });
