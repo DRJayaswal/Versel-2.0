@@ -5,7 +5,7 @@ const httpProxy = require('http-proxy');
 dotenv.config();
 
 const corePath = process.env.CORE_PATH;
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PROXY_PORT;
 
 const app = express();
 const proxy = httpProxy.createProxy();
@@ -19,12 +19,7 @@ if (!corePath) {
 app.listen(PORT, () => {
     console.log(`[INFO] Reverse Proxy on: ${PORT}`);
 });
-proxy.on('proxyReq', (proxyReq,req, res) => {
-    const url = req.url
-    if(url === '/'){
-        proxyReq.path += 'index.html'
-    }
-})
+
 
 app.use((req, res) => {
     const hostName = req.hostname;
@@ -38,3 +33,10 @@ app.use((req, res) => {
         res.status(500).json({ message: 'Internal Server Error' });
     });
 });
+
+proxy.on('proxyRes', (proxyRes, req, res) => {
+    const url = req.url
+    if(url === ''){
+        proxyRes.path += '/index.html'
+    }
+})

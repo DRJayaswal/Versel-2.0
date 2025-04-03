@@ -19,13 +19,8 @@ const s3Client = new S3Client({
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
     }
 })
-function generateProjectSlug() {
-    const timestamp = Date.now().toString(36);
-    const randomString = Math.random().toString(36).substring(2, 8);
-    return `${randomString}-${timestamp}`;
-}
 
-const projectSlug = generateProjectSlug()
+const projectSlug = process.env.PROJECT_SLUG
 
 async function init() {
     console.log('[INFO] Starting script execution...')
