@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -15,6 +16,11 @@ const ecsClient = new ECSClient({
 
 const app = express();
 app.use(express.json());
+app.use(cors({
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type']
+  }));
 
 const PORT = 9000;
 
@@ -24,7 +30,8 @@ app.listen(PORT, () => {
 
 app.post('/project', async (req, res) => {
     console.log('[INFO] Received request to create project.');
-    const { gitUrl } = req.body;
+    const { gitUrl, slug } = req.body;
+    const projectSlug = slug ? slug : generateSlug();
 
     if (!gitUrl) {
         console.error('[ERROR] Missing gitUrl in request body.');
@@ -32,7 +39,6 @@ app.post('/project', async (req, res) => {
     }
 
     console.log(`[INFO] gitUrl: ${gitUrl}`);
-    const projectSlug = generateSlug();
     console.log(`[INFO] Generated project slug: ${projectSlug}`);
 
     const command = new RunTaskCommand({
