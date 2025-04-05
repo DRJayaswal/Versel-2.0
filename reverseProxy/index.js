@@ -36,7 +36,7 @@ app.use((req, res) => {
 
 proxy.on('proxyRes', (proxyRes, req, res) => {
     const url = req.url
-    if(url === ''){
+    if(url === '/'){
         proxyRes.path += '/index.html'
     }
 })
