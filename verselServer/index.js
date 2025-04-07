@@ -17,7 +17,7 @@ const ecsClient = new ECSClient({
 const app = express();
 app.use(express.json());
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: 'http://localhost:3000',
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type']
   }));
@@ -32,6 +32,13 @@ app.post('/project', async (req, res) => {
     console.log('[INFO] Received request to create project.');
     const { gitUrl, slug } = req.body;
     const projectSlug = slug ? slug : generateSlug();
+
+    return res.json({
+        status: 'Queued',
+        data: {
+            projectUrl: `http://${projectSlug}.localhost:8000`
+        }
+    });
 
     if (!gitUrl) {
         console.error('[ERROR] Missing gitUrl in request body.');
