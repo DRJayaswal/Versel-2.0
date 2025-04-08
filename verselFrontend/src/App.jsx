@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import gitHubLogo from '/github.png';
-import orbitsLogo from '/orbits.png';
+import orbitsLogo from '/orbit-logo.png';
+import orbitsName from '/orbits.png';
 import axios from 'axios';
 import './App.css';
 
@@ -9,7 +10,6 @@ function App() {
   const [projectSlug, setProjectSlug] = useState('');
   const [isDeploying, setIsDeploying] = useState(false);
   const [deployedUrl, setDeployedUrl] = useState('');
-  const [needUpdate, setNeedUpdate] = useState(false);
   const [deploymentStage, setDeploymentStage] = useState(0);
   const [deploymentError, setDeploymentError] = useState(null);
   const [progress, setProgress] = useState(0);
@@ -17,19 +17,19 @@ function App() {
   const [showSlugInput, setShowSlugInput] = useState(false);
 
   const deploymentStages = [
-    { id: 0, text: 'Cloning project...', completedText: 'Project cloned', delay: 1200 },
-    { id: 1, text: 'Installing dependencies...', completedText: 'Dependencies installed', delay: 1500 },
-    { id: 2, text: 'Building project...', completedText: 'Project built', delay: 2000 },
-    { id: 3, text: 'Uploading project...', completedText: 'Project uploaded', delay: 1000 },
-    { id: 4, text: 'Running project...', completedText: 'Project running', delay: 1200 },
-    { id: 5, text: 'Deploying project...', completedText: 'Project deployed', delay: 800 },
-    { id: 6, text: 'Almost Done!', completedText: 'Completed! 🎉', delay: 500 }
+    { id: 0, text: 'Cloning...', completedText: 'Cloned', delay: 1200 },
+    { id: 1, text: 'Installing...', completedText: 'Installed', delay: 1500 },
+    { id: 2, text: 'Building...', completedText: 'Built', delay: 2000 },
+    { id: 3, text: 'Uploading...', completedText: 'Uploaded', delay: 1000 },
+    { id: 4, text: 'Running...', completedText: 'Live', delay: 1200 },
+    { id: 5, text: 'Deploying...', completedText: 'Deployed', delay: 800 },
+    { id: 6, text: 'Completing...', completedText: 'Completed', delay: 500 }
   ];
 
   const simulateDeployment = async () => {
     for (const stage of deploymentStages) {
       setDeploymentStage(stage.id);
-      
+
       for (let i = 0; i <= 100; i += 5) {
         setProgress(i);
         await new Promise(resolve => setTimeout(resolve, stage.delay / 20));
@@ -42,7 +42,7 @@ function App() {
     try {
       setIsDeploying(true);
       setDeploymentError(null);
-      
+
       await simulateDeployment();
 
       const response = await axios.post('http://localhost:9000/project', {
@@ -50,7 +50,6 @@ function App() {
         slug: projectSlug,
       });
       setIsDeployed(true);
-
       setDeployedUrl(response.data.data.projectUrl);
     } catch (error) {
       console.error('Deployment failed:', error);
@@ -64,13 +63,6 @@ function App() {
     uploadData();
   };
 
-  const fastBG = (times) => {
-    const video = document.querySelector('.video-background video');
-    if (video) {
-      video.playbackRate += times;
-    }
-  };
-
   useEffect(() => {
     const video = document.querySelector('.video-background video');
     if (video) {
@@ -82,22 +74,52 @@ function App() {
     <>
       <header className="header">
         <a href="/" className="logo-link">
-          <img src={orbitsLogo} alt="Orbits Logo" className="logo-name" />
+          <img src={orbitsName} alt="Orbits Logo" className="logo-name" />
         </a>
         <nav className="nav-links">
-          <button 
-            onClick={() => setShowSlugInput(!showSlugInput)}
-            className="nav-link update-btn"
+          <button
+            onClick={() => {
+              if (isDeployed) {
+                setIsDeploying(false);
+                setDeployedUrl('');
+                setProgress(0);
+                setDeploymentStage(0);
+                setShowSlugInput(!showSlugInput);
+                setIsDeployed(false);
+              }
+              if (!isDeploying) {
+                setShowSlugInput((prev) => !prev);
+                setGithubUrl('');
+                setProjectSlug('');
+              }
+            }}
+            className={isDeploying && !isDeployed ? 'nav-link update-btn dont' : 'nav-link update-btn do'}
           >
-            {showSlugInput ? 'New' : 'Update'}
+            {showSlugInput ? 'Deploy New Project' : 'Update Existing Project'}
           </button>
-          <a 
-            href="https://github.com/drjayaswal/Versel-2.0" 
-            target="_blank" 
+          <a
+            href="https://github.com/drjayaswal/Versel-2.0"
+            target="_blank"
             rel="noopener noreferrer"
             className="nav-link"
           >
             Source Code
+          </a>
+          <a
+            href="https://linkedin.com/in/drjayaswal"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="nav-link"
+          >
+            Linkedin
+          </a>
+          <a
+            href="https://github.com/drjayaswal"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="nav-link"
+          >
+            GitHub
           </a>
         </nav>
       </header>
@@ -117,42 +139,53 @@ function App() {
       </div>
 
       <div className='logos'>
-          <img src={gitHubLogo} className="githublogo" alt="Vite logo" />
-        +
-          <img src={orbitsLogo} className="orbitslogo" alt="Vite logo" />
+        <img src={gitHubLogo} className="githublogo" />
+        <span className='plus'>+</span>
+        <img src={orbitsLogo} className="orbitslogo" />
       </div>
-      
-      <h1 className={isDeployed ? "tagname margin-0" : "tagname margin-50"}>Deploy GitHub P<span className= {isDeployed ? "Rcompleted" : "R"}>R</span>oject</h1>
+
+      <h1 className="tagname margin-50">Deploy GitHub P<span className={isDeployed ? "Rcompleted" : "R"}>R</span>oject</h1>
       <div className="card">
         {!isDeploying ? (
-          <form onSubmit={handleSubmit}>
-            <input
-              type="url"
-              id="github-url"
-              value={githubUrl}
-              onChange={(e) => setGithubUrl(e.target.value)}
-              placeholder="https://github.com/author/repo"
-              pattern="https://github\.com/\S+/\S+"
-              title="Please enter a valid GitHub repository URL"
-              autoComplete="off"
-              required
-            />
+          <form onSubmit={handleSubmit} className="form-container">
             {showSlugInput && (
+              <div className="form-group">
+                <label htmlFor="project-slug" className="form-label">
+                  Project Slug
+                </label>
+                <input
+                  type="text"
+                  id="project-slug"
+                  value={projectSlug}
+                  onChange={(e) => setProjectSlug(e.target.value)}
+                  placeholder="slug"
+                  pattern="[a-z]+-[a-z]+-[a-z]+"
+                  title="Slug must be in format: word-word-word"
+                  autoComplete="off"
+                  required
+                  className="form-input project-slug-input"
+                />
+              </div>
+            )}
+            <div className="form-group">
+              <label htmlFor="github-url" className="form-label">
+                GitHub Repository URL
+              </label>
               <input
-                type="text"
-                id="project-slug"
-                value={projectSlug}
-                onChange={(e) => setProjectSlug(e.target.value)}
-                placeholder="slug"
-                pattern="[a-z]+-[a-z]+-[a-z]+"
-                title="Slug must be in format: word-word-word"
-                className="project-slug-input"
+                type="url"
+                id="github-url"
+                value={githubUrl}
+                onChange={(e) => setGithubUrl(e.target.value)}
+                placeholder="https://github.com/author/repo"
+                pattern="https://github\.com/\S+/\S+"
+                title="Please enter a valid GitHub repository URL"
                 autoComplete="off"
                 required
+                className="form-input"
               />
-            )}
-            <button type="submit">
-              {showSlugInput ? 'Update' : 'Deploy'}
+            </div>
+            <button type="submit" className="form-button">
+              {showSlugInput ? 'Update Project' : 'Deploy Project'}
             </button>
           </form>
         ) : (
@@ -161,9 +194,9 @@ function App() {
               <div className="deploying">
                 <div className="spinner"></div>
                 <div className="stages">
-                  {deploymentStages.map((stage) => (
-                    <div 
-                      key={stage.id} 
+                  {deploymentStages.map((stage, index) => (
+                    <div
+                      key={stage.id}
                       className={`stage ${deploymentStage >= stage.id ? 'active' : ''} ${deploymentStage > stage.id ? 'completed' : ''}`}
                     >
                       <span className="stage-dot">
@@ -175,7 +208,7 @@ function App() {
                         <p>{deploymentStage > stage.id ? stage.completedText : stage.text}</p>
                         {deploymentStage === stage.id && (
                           <div className="progress-bar">
-                            <div 
+                            <div
                               className="progress-fill"
                               style={{ width: `${progress}%` }}
                             ></div>
@@ -195,33 +228,32 @@ function App() {
               isDeploying ? (
                 <div></div>
               ) : (
-                <div 
-                className="visit-button"
-                onClick={() => {
-                  setIsDeploying(false);
-                  setDeployedUrl('');
-                  setProgress(0);
-                  setDeploymentStage(0);
-                  setIsDeployed(false);
-                  fastBG(-1);
-                } }
-              >
-                Update                    
-              </div>
-                ))}
+                <div
+                  className="visit-button"
+                  onClick={() => {
+                    setIsDeploying(false);
+                    setDeployedUrl('');
+                    setProgress(0);
+                    setDeploymentStage(0);
+                    setIsDeployed(false);
+                  }}
+                >
+                  Update
+                </div>
+              ))}
           </div>
         )}
         {deployedUrl && (
           <div className="action-buttons">
-            <a 
+            <a
               href={deployedUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="visit-button"
             >
-              Project URL 
+              Project URL
             </a>
-            <button 
+            <button
               className="deploy-new-button"
               onClick={() => {
                 setIsDeploying(false);
@@ -239,27 +271,8 @@ function App() {
           </div>
         )}
       </div>
-      
-      <footer className="footer">
-        <div className="footer-content">
-          <div className="footer-section">
-            <h3>Connect</h3>
-            <a href="https://github.com/drjayaswal" target="_blank" rel="noopener noreferrer">GitHub</a>
-            <a href="https://linkedin.com/in/drjayaswal" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-          </div>
-          <div className="footer-section">
-            <h3>Created By</h3>
-            <p>Dhruv Ratan Jayaswal</p>
-            <p>&copy; {new Date().getFullYear()} All rights reserved</p>
-          </div>
-        </div>
-      </footer>
     </>
   );
 }
 
 export default App;
-
-
-
-
